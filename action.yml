@@ -22,6 +22,10 @@ inputs:
     description: Directory of .sql files
     required: false
     default: ./migrations
+  schema:
+    description: Schema to run migrations against
+    required: false
+    default: public
   dry-run:
     description: If "true", print what would run without applying it
     required: false
@@ -44,4 +48,5 @@ runs:
         DB_PORT: ${{ inputs.db-port }}
         DB_NAME: ${{ inputs.db-name }}
         MIGRATIONS_DIR: ${{ inputs.migrations-dir }}
+        SCHEMA: ${{ inputs.schema }}
         DRY_RUN: ${{ inputs.dry-run }}

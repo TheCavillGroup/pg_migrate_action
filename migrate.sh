@@ -8,6 +8,7 @@
 # Optional env vars:
 #   MIGRATIONS_DIR   Directory of .sql files (default: ./migrations)
 #   DRY_RUN          If "true", print what would run without applying it
+#   SCHEMA           Schema to run migrations against (default: public)
 #
 # Migration file naming convention:
 #   0001_create_users_table.sql
@@ -23,6 +24,7 @@ set -euo pipefail
 
 MIGRATIONS_DIR="${MIGRATIONS_DIR:-./migrations}"
 DRY_RUN="${DRY_RUN:-false}"
+SCHEMA="${SCHEMA:-public}"
 
 if [[ -z "${DATABASE_URL:-}" ]]; then
     echo "ERROR: DATABASE_URL is not set." >&2
@@ -40,6 +42,11 @@ if ! command -v psql >/dev/null 2>&1; then
 fi
 
 PSQL="psql -v ON_ERROR_STOP=1 -X -q -A -t"
+
+echo "==> Ensuring schema '${SCHEMA}' exists"
+$PSQL "$DATABASE_URL" -c "CREATE SCHEMA IF NOT EXISTS \"${SCHEMA}\";"
+
+export PGOPTIONS="--search_path=${SCHEMA}"
 
 echo "==> Ensuring schema_migrations table exists"
 $PSQL "$DATABASE_URL" <<'SQL'

@@ -11,5 +11,6 @@ GitHub Action wrapper for `migrate.sh` — applies numbered Postgres `.sql` migr
     db-port: "5432"
     db-name: mydb
     migrations-dir: ./migrations
+    schema: public
     dry-run: "false"
 ```
