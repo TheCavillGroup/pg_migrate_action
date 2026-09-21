@@ -1,0 +1,25 @@
+name: Postgres Migrate
+description: Apply Postgres schema migrations from a directory of numbered .sql files
+
+inputs:
+  database-url:
+    description: Postgres connection string
+    required: true
+  migrations-dir:
+    description: Directory of .sql files
+    required: false
+    default: ./migrations
+  dry-run:
+    description: If "true", print what would run without applying it
+    required: false
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: "${{ github.action_path }}/migrate.sh"
+      env:
+        DATABASE_URL: ${{ inputs.database-url }}
+        MIGRATIONS_DIR: ${{ inputs.migrations-dir }}
+        DRY_RUN: ${{ inputs.dry-run }}
