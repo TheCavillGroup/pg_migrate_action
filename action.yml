@@ -2,8 +2,21 @@ name: Postgres Migrate
 description: Apply Postgres schema migrations from a directory of numbered .sql files
 
 inputs:
-  database-url:
-    description: Postgres connection string
+  db-username:
+    description: Database username
+    required: true
+  db-password:
+    description: Database password
+    required: true
+  db-host:
+    description: Database host
+    required: true
+  db-port:
+    description: Database port
+    required: false
+    default: "5432"
+  db-name:
+    description: Database name
     required: true
   migrations-dir:
     description: Directory of .sql files
@@ -18,8 +31,17 @@ runs:
   using: composite
   steps:
     - shell: bash
-      run: "${{ github.action_path }}/migrate.sh"
+      run: |
+        echo "::add-mask::${DB_PASSWORD}"
+        DATABASE_URL="$("${{ github.action_path }}/build_database_url.sh")"
+        echo "::add-mask::${DATABASE_URL}"
+        export DATABASE_URL
+        "${{ github.action_path }}/migrate.sh"
       env:
-        DATABASE_URL: ${{ inputs.database-url }}
+        DB_USERNAME: ${{ inputs.db-username }}
+        DB_PASSWORD: ${{ inputs.db-password }}
+        DB_HOST: ${{ inputs.db-host }}
+        DB_PORT: ${{ inputs.db-port }}
+        DB_NAME: ${{ inputs.db-name }}
         MIGRATIONS_DIR: ${{ inputs.migrations-dir }}
         DRY_RUN: ${{ inputs.dry-run }}
