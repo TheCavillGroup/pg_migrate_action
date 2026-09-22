@@ -44,7 +44,18 @@ fi
 PSQL="psql -v ON_ERROR_STOP=1 -X -q -A -t"
 
 echo "==> Ensuring schema '${SCHEMA}' exists"
-$PSQL "$DATABASE_URL" -c "CREATE SCHEMA IF NOT EXISTS \"${SCHEMA}\";"
+
+# CREATE SCHEMA IF NOT EXISTS still requires CREATE privilege on the database
+# even when the schema already exists, so check first — this lets roles that
+# only have privileges on their own pre-created schema run migrations fine.
+SCHEMA_EXISTS="$($PSQL "$DATABASE_URL" -c \
+    "SELECT 1 FROM pg_namespace WHERE nspname = '${SCHEMA}';")"
+
+if [[ -n "$SCHEMA_EXISTS" ]]; then
+    echo "    schema already exists, skipping creation"
+else
+    $PSQL "$DATABASE_URL" -c "CREATE SCHEMA \"${SCHEMA}\";"
+fi
 
 export PGOPTIONS="--search_path=${SCHEMA}"
 
